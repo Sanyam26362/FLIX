@@ -4,9 +4,9 @@ const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, select: false }, 
-    googleId: { type: String },
+    googleId: { type: String, select: false }, 
     profilePic: { type: String },
-    interests: [{ type: String }],
+    interests: [{ type: String }], 
     createdAt: { type: Date, default: Date.now }
 });
 

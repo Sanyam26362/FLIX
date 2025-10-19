@@ -1,33 +1,24 @@
-// controllers/recommendationController.js
 const Recommendation = require("../models/Recommendation");
-const mongoose = require("mongoose"); // ADDED for ID validation
 
-// Existing function is correct
 exports.getRecommendations = async (req, res) => {
     try {
         const rec = await Recommendation.findOne({ user: req.user }).populate("recommendedMovies");
-        if (!rec) return res.status(200).json({ message: "No recommendations yet", recommendedMovies: [] });
+        
+        if (!rec) {
+             return res.status(200).json({ message: "No recommendations yet. Please set interests.", recommendedMovies: [] });
+        }
         res.status(200).json(rec);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: "Server Error: " + err.message });
     }
 };
 
-// Called by ML Team - ***SECURITY CHECK MUST BE IN PLACE IN THE ROUTE HANDLER***
 exports.addRecommendations = async (req, res) => {
     try {
-        // userId should technically be validated here as well
-        const { userId, movieIds } = req.body; 
+        const { userId, movieIds } = req.body;
         
-        // Basic validation
         if (!userId || !movieIds || !Array.isArray(movieIds)) {
-            return res.status(400).json({ msg: "Invalid data format for recommendations" });
-        }
-
-        // NEW: Validate that all provided IDs are valid MongoDB ObjectIds
-        const invalidIds = movieIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
-        if (invalidIds.length > 0) {
-            return res.status(400).json({ msg: "One or more provided movie IDs are not valid MongoDB IDs." });
+            return res.status(400).json({ msg: "Invalid data format: requires userId and movieIds array." });
         }
         
         const recommendation = await Recommendation.findOneAndUpdate(
@@ -35,8 +26,9 @@ exports.addRecommendations = async (req, res) => {
             { recommendedMovies: movieIds },
             { upsert: true, new: true }
         );
-        res.status(200).json(recommendation);
+        
+        res.status(200).json({ msg: "Recommendations updated successfully", recommendation });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: "Server Error: " + err.message });
     }
 };
