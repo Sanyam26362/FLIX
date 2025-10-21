@@ -6,8 +6,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, select: false }, 
   googleId: { type: String },
   profilePic: { type: String },
-  genres: [{ type: String }], // RENAMED FROM interests
-  preferredLanguage: { type: String, default: 'English' }, // ADDED FIELD
+  genres: [{ type: String }], 
+  preferredLanguage: { type: String, default: 'English' },
   createdAt: { type: Date, default: Date.now }
 });
 

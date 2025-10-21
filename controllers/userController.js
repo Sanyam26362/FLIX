@@ -3,7 +3,6 @@ const Interaction = require("../models/Interaction");
 const Bookmark = require("../models/Bookmark");
 const Movie = require("../models/Movie");
 
-// Helper for ML payload construction
 const triggerInitialRecommendations = async (user) => {
 const hasFullProfile = user.genres && user.genres.length > 0 && user.preferredLanguage;
 
@@ -50,9 +49,7 @@ console.log(`[ML Trigger] Sent request to ML Service for user: ${user._id}`);
 
 };
 
-// ====================================================================
-// EXPORTED FUNCTIONS
-// ====================================================================
+
 
 exports.getProfile = async (req, res) => {
 try {
@@ -64,7 +61,7 @@ res.status(500).json({ error: err.message });
 }
 };
 
-exports.updateProfile = async (req, res) => { // <-- EXPORT IS CORRECT HERE
+exports.updateProfile = async (req, res) => { 
 try {
 const { name, genres, profilePic, preferredLanguage } = req.body;
 const updates = { name, genres, profilePic, preferredLanguage };
