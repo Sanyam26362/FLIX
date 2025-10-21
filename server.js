@@ -27,7 +27,7 @@ app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 
 
-const PORT = process.env.PORT || 5000; 
+const PORT =  5000; 
 
 app.listen(PORT , () =>
   console.log(` Server running on port ${PORT}. Frontend URL: ${FRONTEND_URL}`)

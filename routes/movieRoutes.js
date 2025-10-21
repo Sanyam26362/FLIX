@@ -4,6 +4,6 @@ const router = express.Router();
 
 router.get("/", getAllMovies);
 router.get("/search", searchMovies);
-router.get("/:id", getMovieById);
+router.get("/:id", getMovieById); 
 
 module.exports = router;
