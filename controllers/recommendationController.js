@@ -1,43 +1,44 @@
+
 const Recommendation = require("../models/Recommendation");
 const Movie = require("../models/Movie"); 
 
-const mapExternalIdsToMongoIds = async (externalRecs) => {
-    if (!externalRecs || externalRecs.length === 0) return [];
-
-    const yashasviIds = externalRecs.map(rec => rec.id).filter(id => id != null); 
-    
-    const movies = await Movie.find({ id: { $in: yashasviIds } }).select('_id id'); 
-
-    const mongoIdMap = new Map(movies.map(m => [m.id, m._id]));
-
-    return yashasviIds.map(mlId => mongoIdMap.get(mlId)).filter(id => id != null);
-};
 
 
 exports.getRecommendations = async (req, res) => {
+    try {
+        const recommendation = await Recommendation.findOne({ user: req.user }).select('recommendedMoviesData');
+
+        if (!recommendation || recommendation.recommendedMoviesData.length === 0) {
+            return res.status(200).json([]);
+        }
+        
+        res.status(200).json(recommendation.recommendedMoviesData);
+    } catch (err) {
+        res.status(500).json({ error: "Server Error fetching recommendations: " + err.message });
+    }
 };
 
+
+
 exports.addRecommendations = async (req, res) => {
-  try {
-    const { userId, recommendedMovies } = req.body; 
-    
-    if (!userId || !recommendedMovies || !Array.isArray(recommendedMovies)) {
-        return res.status(400).json({ msg: "Invalid data format. Requires userId and recommendedMovies array of objects." });
-    }
+    try {
+        const { userId, recommendations, bookmarked_movies } = req.body; 
+        
+        if (!userId || !Array.isArray(recommendations)) {
+            return res.status(400).json({ msg: "Invalid data format. Requires userId and a 'recommendations' array." });
+        }
 
-    const mongoMovieIds = await mapExternalIdsToMongoIds(recommendedMovies);
-    
-    if (mongoMovieIds.length === 0) {
-        console.warn(`[ML Push] No matching Mongo IDs found for user ${userId}. Skipping update.`);
+        const recommendation = await Recommendation.findOneAndUpdate(
+            { user: userId },
+            { 
+                recommendedMoviesData: recommendations, 
+                bookmarkedMovieIds: bookmarked_movies 
+            },
+            { upsert: true, new: true }
+        );
+        
+        res.status(200).json(recommendation);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-
-    const recommendation = await Recommendation.findOneAndUpdate(
-      { user: userId },
-      { recommendedMovies: mongoMovieIds },
-      { upsert: true, new: true }
-    );
-    res.status(200).json(recommendation);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 };

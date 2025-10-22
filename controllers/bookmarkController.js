@@ -1,18 +1,33 @@
+
 const Bookmark = require("../models/Bookmark");
+const Movie = require("../models/Movie"); // ⬅️ NEW: Required for ID lookup
 
 exports.addBookmark = async (req, res) => {
     try {
-        const { movieId } = req.body;
+        const externalId = req.body.movieId; 
+
+        if (!externalId) {
+            return res.status(400).json({ msg: "Please provide a movie ID." });
+        }
         
-        const existingBookmark = await Bookmark.findOne({ user: req.user, movie: movieId });
+        const movieDoc = await Movie.findOne({ id: externalId }).select('_id');
+
+        if (!movieDoc) {
+            return res.status(404).json({ msg: "Movie not found in database. Cannot bookmark." });
+        }
+        
+        const mongoMovieId = movieDoc._id; 
+
+        const existingBookmark = await Bookmark.findOne({ user: req.user, movie: mongoMovieId });
         if (existingBookmark) {
             return res.status(200).json({ msg: "Movie already bookmarked", bookmark: existingBookmark });
         }
 
-        const bookmark = await Bookmark.create({ user: req.user, movie: movieId });
+        const bookmark = await Bookmark.create({ user: req.user, movie: mongoMovieId });
         res.status(201).json(bookmark); 
+
     } catch (err) {
-        res.status(500).json({ error: "Server Error: " + err.message });
+        res.status(500).json({ error: "Server Error during bookmarking: " + err.message });
     }
 };
 

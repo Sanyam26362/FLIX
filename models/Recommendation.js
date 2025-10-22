@@ -2,7 +2,10 @@ const mongoose = require("mongoose");
 
 const recommendationSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
-    recommendedMovies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Movie" }],
+    recommendedMoviesData: { 
+        type: [mongoose.Schema.Types.Mixed], 
+        default: [] 
+    },
     createdAt: { type: Date, default: Date.now }
 });
 
