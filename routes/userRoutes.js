@@ -4,7 +4,7 @@ const { getProfile, updateProfile, addInterests } = require("../controllers/user
 const router = express.Router();
 
 router.get("/profile", auth, getProfile);
-router.put("/profile", auth, updateProfile); // <-- THIS ROUTE WAS FAILING
+router.put("/profile", auth, updateProfile); 
 router.post("/interests", auth, addInterests);
 
 module.exports = router;
