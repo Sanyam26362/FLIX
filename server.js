@@ -32,12 +32,12 @@ app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 
 app.get("/", (req, res) => {
-  res.status(200).send("✅ API is running successfully!");
+  res.status(200).send(" API is running successfully!");
 });
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Frontend URL allowed: ${FRONTEND_URL}`);
+  console.log(` Server running on port ${PORT}`);
+  console.log(` Frontend URL allowed: ${FRONTEND_URL}`);
 });
