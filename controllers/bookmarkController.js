@@ -1,6 +1,6 @@
 
 const Bookmark = require("../models/Bookmark");
-const Movie = require("../models/Movie"); // ⬅️ NEW: Required for ID lookup
+const Movie = require("../models/Movie"); 
 
 exports.addBookmark = async (req, res) => {
     try {

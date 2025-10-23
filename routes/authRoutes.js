@@ -2,7 +2,7 @@ const express = require("express");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const { signup, login } = require("../controllers/authController");
-const auth = require("../middleware/authMiddleware"); // ✅ Make sure this exists
+const auth = require("../middleware/authMiddleware"); 
 const router = express.Router();
 
 

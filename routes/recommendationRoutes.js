@@ -1,11 +1,14 @@
-const express = require("express");
-const auth = require("../middleware/authMiddleware");
-const apiKeyAuth = require("../middleware/apiKeyAuth"); 
-const { getRecommendations, addRecommendations } = require("../controllers/recommendationController");
+const express = require('express');
 const router = express.Router();
+const { 
+    receiveRecommendationsFromML, 
+    getRecommendationsByUser,     
+    
+} = require('../controllers/recommendationController'); 
 
-router.get("/", auth, getRecommendations);
 
-router.post("/", apiKeyAuth, addRecommendations); 
+router.post('/', receiveRecommendationsFromML); 
+
+router.get('/:userId', getRecommendationsByUser);
 
 module.exports = router;
