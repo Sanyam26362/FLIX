@@ -8,6 +8,9 @@ const userSchema = new mongoose.Schema({
   profilePic: { type: String },
   genres: [{ type: String }], 
   preferredLanguage: { type: String, default: 'English' },
+  
+  watchHistory: [{ type: Number }], 
+  
   createdAt: { type: Date, default: Date.now }
 });
 

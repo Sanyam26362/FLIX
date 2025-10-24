@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const Interaction = require("../models/Interaction");
 const Bookmark = require("../models/Bookmark");
-const Movie = require("../models/Movie");
+const Movie = require("../models/Movie"); 
 const axios = require("axios");
 
 const YASHASVI_ML_INPUT_ENDPOINT = process.env.YASHASVI_ML_INPUT_ENDPOINT;
@@ -21,9 +21,9 @@ const triggerInitialRecommendations = async (user) => {
     ].filter((id) => id != null);
 
     const historicalMovies = await Movie.find({
-      _id: { $in: allMovieMongoIds }, 
+      _id: { $in: allMovieMongoIds },
     }).select("id _id");
-    
+
     const mongoIdToExternalId = new Map(
       historicalMovies.map((m) => [m._id.toString(), m.id])
     );
@@ -65,9 +65,9 @@ const triggerInitialRecommendations = async (user) => {
       console.error("[ML Trigger] ML Endpoint not set correctly. Skipping...");
       return;
     }
-    
+
     const mlResponse = await axios.post(
-      YASHASVI_ML_INPUT_ENDPOINT, 
+      YASHASVI_ML_INPUT_ENDPOINT,
       finalMlPayload
     );
     let mlData = mlResponse.data;
@@ -76,18 +76,18 @@ const triggerInitialRecommendations = async (user) => {
         try {
             let cleanJsonString = mlData.trim();
             cleanJsonString = cleanJsonString.replace(/NaN/g, 'null');
-            
+
             mlData = JSON.parse(cleanJsonString);
         } catch (e) {
-            console.error("❌ Failed to parse ML response string as JSON:", e.message);
+            console.error(" Failed to parse ML response string as JSON:", e.message);
             console.error(`Received unparsed string: ${mlResponse.data}`);
-            return; 
+            return;
         }
     }
 
     if (!mlData.recommendations || !Array.isArray(mlData.recommendations)) {
-      console.error("❌ Invalid ML response format. Missing recommendations.");
-      console.error(`Received data: ${JSON.stringify(mlData)}`); 
+      console.error(" Invalid ML response format. Missing recommendations.");
+      console.error(`Received data: ${JSON.stringify(mlData)}`);
       return;
     }
 
@@ -106,7 +106,7 @@ const triggerInitialRecommendations = async (user) => {
     const storeResponse = await axios.post(
       internalApiUrl,
       {
-        userId: cleanUserId, 
+        userId: cleanUserId,
         recommendations: cleanedRecommendations,
         bookmarked_movies: mlData.bookmarked_movies,
       },
@@ -121,8 +121,8 @@ const triggerInitialRecommendations = async (user) => {
       ? `status code ${error.response.status}`
       : "network error";
     const data = error.response ? JSON.stringify(error.response.data) : "No response data";
-      
-    console.error(`❌ ML Service Call FAILED (${status}): ${error.message}. Response Data: ${data}`);
+
+    console.error(` ML Service Call FAILED (${status}): ${error.message}. Response Data: ${data}`);
   }
 };
 
@@ -190,3 +190,63 @@ exports.addInterests = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+exports.getWatchHistory = async (req, res) => {
+  try {
+    const user = await User.findById(req.user); 
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    if (!user.watchHistory || user.watchHistory.length === 0) {
+        return res.json([]); 
+    }
+
+   
+    const movies = await Movie.find({
+      'id': { $in: user.watchHistory } 
+    });
+
+   
+    const movieMap = new Map(movies.map(m => [m.id, m]));
+    const sortedMovies = user.watchHistory.map(id => movieMap.get(id)).filter(m => m); 
+
+    res.json(sortedMovies.reverse());
+
+  } catch (err) {
+    console.error("Error fetching watch history:", err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+
+exports.addToWatchHistory = async (req, res) => {
+  const { movieId } = req.body;
+
+  if (!movieId || typeof movieId !== 'number') {
+    return res.status(400).json({ msg: 'Numeric Movie ID (external) is required.' });
+  }
+
+  try {
+    const user = await User.findById(req.user);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+   
+    user.watchHistory = user.watchHistory.filter(id => id !== movieId);
+
+    user.watchHistory.push(movieId);
+
+    await user.save();
+
+    res.json(user.watchHistory);
+
+  } catch (err) {
+    console.error("Error adding to watch history:", err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
